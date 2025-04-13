@@ -1,0 +1,11 @@
+.vs
+.vscode
+.idea
+
+*.env
+*.env.*
+*.test
+*.out
+
+go.work
+go.work.sum
