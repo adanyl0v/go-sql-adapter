@@ -13,7 +13,11 @@ type Stmt struct {
 	query         string
 }
 
-func NewStmt(driverRawConn driver.RawConn, ctx context.Context, query string) Stmt {
+func NewStmt(
+	driverRawConn driver.RawConn,
+	ctx context.Context,
+	query string,
+) Stmt {
 	return Stmt{
 		driverRawConn: driverRawConn,
 		ctx:           ctx,

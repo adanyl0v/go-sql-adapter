@@ -48,7 +48,11 @@ func (t Tx) Query(
 	return rows, nil
 }
 
-func (t Tx) QueryRow(ctx context.Context, query string, args ...any) sqladapt.Row {
+func (t Tx) QueryRow(
+	ctx context.Context,
+	query string,
+	args ...any,
+) sqladapt.Row {
 	driverRow := t.driverTx.QueryRow(ctx, query, args...)
 	row := NewRow(driverRow)
 	return row

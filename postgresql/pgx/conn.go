@@ -48,14 +48,21 @@ func (c Conn) Query(
 	return rows, nil
 }
 
-func (c Conn) QueryRow(ctx context.Context, query string, args ...any) sqladapt.Row {
+func (c Conn) QueryRow(
+	ctx context.Context,
+	query string,
+	args ...any,
+) sqladapt.Row {
 	driverRow := c.driverConn.QueryRow(ctx, query, args...)
 	row := NewRow(driverRow)
 	return row
 }
 
 // Prepare always returns no errors.
-func (c Conn) Prepare(ctx context.Context, query string) (sqladapt.Stmt, error) {
+func (c Conn) Prepare(
+	ctx context.Context,
+	query string,
+) (sqladapt.Stmt, error) {
 	stmt := NewStmt(c.driverConn, ctx, query)
 	return stmt, nil
 }

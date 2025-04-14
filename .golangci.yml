@@ -48,7 +48,7 @@ formatters:
     gofmt:
       simplify: true
     golines:
-      max-len: 90
+      max-len: 80
       reformat-tags: true
       shorten-comments: true
       chain-split-dots: true
