@@ -1,0 +1,57 @@
+version: "2"
+
+run:
+  go: "1.24"
+  timeout: "30s"
+  relative-path-mode: gomod
+
+linters:
+  default: none
+  enable:
+    - govet
+    - unused
+    - errcheck
+    - ineffassign
+    - staticcheck
+    # ---
+    - asasalint
+    - asciicheck
+    - bidichk
+    - errname
+    - gocheckcompilerdirectives
+    - gochecknoinits
+    - goconst
+    - godot
+    - iface
+    - importas
+    - musttag
+    - nilerr
+    - nilnesserr
+    - nilnil
+    - noctx
+    - perfsprint
+    - rowserrcheck
+    - sloglint
+    - sqlclosecheck
+    - tagalign
+    - unconvert
+    - unparam
+
+formatters:
+  enable:
+    - gofmt
+    - golines
+    - goimports
+  exclusions:
+    generated: strict
+  settings:
+    gofmt:
+      simplify: true
+    golines:
+      max-len: 90
+      reformat-tags: true
+      shorten-comments: true
+      chain-split-dots: true
+
+output:
+  show-stats: true
