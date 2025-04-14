@@ -1,4 +1,4 @@
-package sqladapt
+package adapter
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package pgxadaptdriver
+package driver
 
 import (
 	"context"
@@ -22,26 +22,40 @@ type Rows interface {
 	Scan(dest ...any) error
 }
 
-type RawConn interface {
+type Execer interface {
 	Exec(
 		ctx context.Context,
 		query string,
 		args ...any,
 	) (pgconn.CommandTag, error)
+}
+
+type Querier interface {
 	Query(ctx context.Context, query string, args ...any) (pgx.Rows, error)
+}
+
+type RowQuerier interface {
 	QueryRow(ctx context.Context, query string, args ...any) pgx.Row
 }
 
-type Conn interface {
-	RawConn
+type Beginner interface {
 	Begin(ctx context.Context) (pgx.Tx, error)
+}
+
+type Conn interface {
+	Execer
+	Querier
+	RowQuerier
+	Beginner
 	Ping(ctx context.Context) error
 	Close()
 }
 
 type Tx interface {
-	RawConn
-	Begin(ctx context.Context) (pgx.Tx, error)
+	Execer
+	Querier
+	RowQuerier
+	Beginner
 	Commit(ctx context.Context) error
 	Rollback(ctx context.Context) error
 }
