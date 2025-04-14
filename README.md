@@ -1,1 +1,1 @@
-# Go PostgreSQL Adapter
+# A General-Purpose SQL Adapter

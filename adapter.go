@@ -1,4 +1,4 @@
-package pgadapt
+package sqladapt
 
 import (
 	"context"
