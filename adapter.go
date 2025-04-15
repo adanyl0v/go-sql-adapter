@@ -1,4 +1,4 @@
-package sqladapt
+package adapter
 
 import (
 	"context"
@@ -9,6 +9,12 @@ import (
 var (
 	ErrUnsupportedLastInsertId = errors.New("unsupported last insert id")
 	ErrUnsupportedRowsAffected = errors.New("unsupported rows affected")
+
+	ErrNoRows              = errors.New("no rows in result set")
+	ErrCheckViolation      = errors.New("violated the check constraint")
+	ErrUniqueViolation     = errors.New("violated the unique constraint")
+	ErrNotNullViolation    = errors.New("violated the not null constraint")
+	ErrForeignKeyViolation = errors.New("violated the foreign key constraint")
 )
 
 type Result interface {

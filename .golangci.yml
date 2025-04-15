@@ -36,6 +36,11 @@ linters:
     - tagalign
     - unconvert
     - unparam
+  exclusions:
+    generated: disable
+    paths:
+      # - "postgresql/pgx/driver/mock/driver.go"
+      - "mock"
 
 formatters:
   enable:
@@ -48,7 +53,7 @@ formatters:
     gofmt:
       simplify: true
     golines:
-      max-len: 90
+      max-len: 80
       reformat-tags: true
       shorten-comments: true
       chain-split-dots: true
