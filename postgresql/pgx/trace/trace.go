@@ -17,4 +17,5 @@ const (
 type Logger interface {
 	Log(level Level, message string, fields map[string]any)
 	With(fields map[string]any) Logger
+	WithCallerSkip(skip int) Logger
 }

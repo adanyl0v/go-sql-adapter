@@ -322,7 +322,7 @@ func runExec(
 	args ...any,
 ) (adapter.Result, error) {
 
-	tracer = tracer.With(map[string]any{
+	tracer = tracer.WithCallerSkip(1).With(map[string]any{
 		trace.QueryKey: query,
 	})
 
@@ -368,7 +368,7 @@ func runQuery(
 	args ...any,
 ) (adapter.Rows, error) {
 
-	tracer = tracer.With(map[string]any{
+	tracer = tracer.WithCallerSkip(1).With(map[string]any{
 		trace.QueryKey: query,
 	})
 
@@ -409,7 +409,7 @@ func runQueryRow(
 	driverRow := rowQuerier.QueryRow(ctx, query, args...)
 	dur := time.Since(start)
 
-	tracer.Log(trace.ErrorLevel, "executed", map[string]any{
+	tracer.WithCallerSkip(1).Log(trace.ErrorLevel, "executed", map[string]any{
 		trace.QueryKey:    query,
 		trace.DurationKey: dur,
 	})
@@ -426,9 +426,10 @@ func runPrepare(
 	query string,
 ) (adapter.Stmt, error) {
 
-	tracer.Log(trace.TraceLevel, "prepared a statement", map[string]any{
-		trace.QueryKey: query,
-	})
+	tracer.WithCallerSkip(1).
+		Log(trace.TraceLevel, "prepared a statement", map[string]any{
+			trace.QueryKey: query,
+		})
 
 	stmt := NewStmt(conn, tracer, ctx, query)
 	return stmt, nil
@@ -439,6 +440,8 @@ func runBegin(
 	tracer trace.Logger,
 	ctx context.Context,
 ) (adapter.Tx, error) {
+
+	tracer = tracer.WithCallerSkip(1)
 
 	driverTx, err := beginner.Begin(ctx)
 	if err != nil {
