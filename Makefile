@@ -1,3 +1,6 @@
+TESTS_DIR = tests
+TESTS_COVER = $(TESTS_DIR)/cover
+
 # Tests and benchmarks
 # --------------------
 
@@ -7,9 +10,9 @@ test: lint
 
 .PHONY: cover
 cover: lint
-	go test -v -coverprofile cover.out ./...
-	go tool cover -html cover.out -o cover.html
-	rm cover.out
+	go test -v -coverprofile $(TESTS_COVER).out ./...
+	go tool cover -html $(TESTS_COVER).out -o $(TESTS_COVER).html
+	rm $(TESTS_COVER).out
 
 .PHONY: bench
 bench: lint
