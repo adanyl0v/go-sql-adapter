@@ -11,10 +11,10 @@ var (
 	ErrUnsupportedRowsAffected = errors.New("unsupported rows affected")
 
 	ErrNoRows              = errors.New("no rows in result set")
-	ErrCheckViolation      = errors.New("check constraint violation")
-	ErrUniqueViolation     = errors.New("unique constraint violation")
-	ErrNotNullViolation    = errors.New("not null constraint violation")
-	ErrForeignKeyViolation = errors.New("foreign key constraint violation")
+	ErrCheckViolation      = errors.New("violated the check constraint")
+	ErrUniqueViolation     = errors.New("violated the unique constraint")
+	ErrNotNullViolation    = errors.New("violated the not null constraint")
+	ErrForeignKeyViolation = errors.New("violated the foreign key constraint")
 )
 
 type Result interface {
