@@ -352,7 +352,7 @@ func runExec(
 	}
 
 	result := NewResult(driverResult)
-	tracer.Log(trace.ErrorLevel, "executed", map[string]any{
+	tracer.Log(trace.TraceLevel, "executed", map[string]any{
 		trace.ResultKey:   result,
 		trace.DurationKey: dur,
 	})
@@ -388,7 +388,7 @@ func runQuery(
 		return nil, err
 	}
 
-	tracer.Log(trace.ErrorLevel, "executed", map[string]any{
+	tracer.Log(trace.TraceLevel, "executed", map[string]any{
 		trace.DurationKey: dur,
 	})
 
@@ -409,7 +409,7 @@ func runQueryRow(
 	driverRow := rowQuerier.QueryRow(ctx, query, args...)
 	dur := time.Since(start)
 
-	tracer.WithCallerSkip(1).Log(trace.ErrorLevel, "executed", map[string]any{
+	tracer.WithCallerSkip(1).Log(trace.TraceLevel, "executed", map[string]any{
 		trace.QueryKey:    query,
 		trace.DurationKey: dur,
 	})

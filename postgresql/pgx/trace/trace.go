@@ -1,3 +1,4 @@
+//go:generate mockgen -typed -destination mock/trace.go . Logger
 package trace
 
 type Level int

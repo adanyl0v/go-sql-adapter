@@ -36,6 +36,11 @@ linters:
     - tagalign
     - unconvert
     - unparam
+  exclusions:
+    generated: disable
+    paths:
+      # - "postgresql/pgx/driver/mock/driver.go"
+      - "mock"
 
 formatters:
   enable:

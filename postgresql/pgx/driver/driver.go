@@ -1,3 +1,4 @@
+//go:generate mockgen -typed -destination mock/driver.go . Result,Row,Rows,Execer,Querier,RowQuerier,Beginner,Conn,Tx
 package driver
 
 import (
