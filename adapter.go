@@ -9,6 +9,12 @@ import (
 var (
 	ErrUnsupportedLastInsertId = errors.New("unsupported last insert id")
 	ErrUnsupportedRowsAffected = errors.New("unsupported rows affected")
+
+	ErrNoRows              = errors.New("no rows in result set")
+	ErrCheckViolation      = errors.New("check constraint violation")
+	ErrUniqueViolation     = errors.New("unique constraint violation")
+	ErrNotNullViolation    = errors.New("not null constraint violation")
+	ErrForeignKeyViolation = errors.New("foreign key constraint violation")
 )
 
 type Result interface {

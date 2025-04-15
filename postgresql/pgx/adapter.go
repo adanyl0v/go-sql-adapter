@@ -2,11 +2,16 @@ package pgxadapt
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	adapter "github.com/adanyl0v/go-sql-adapter"
 	"github.com/adanyl0v/go-sql-adapter/postgresql/pgx/driver"
+	"github.com/adanyl0v/go-sql-adapter/postgresql/pgx/errs"
 	"github.com/adanyl0v/go-sql-adapter/postgresql/pgx/trace"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 // Result
@@ -111,21 +116,21 @@ func (r Rows) Scan(dest ...any) error {
 // Stmt
 // ----
 
-type stmtConn interface {
+type StmtConn interface {
 	driver.Execer
 	driver.Querier
 	driver.RowQuerier
 }
 
 type Stmt struct {
-	conn   stmtConn
+	conn   StmtConn
 	tracer trace.Logger
 	ctx    context.Context
 	query  string
 }
 
 func NewStmt(
-	conn stmtConn,
+	conn StmtConn,
 	tracer trace.Logger,
 	ctx context.Context,
 	query string,
@@ -326,6 +331,20 @@ func runExec(
 	dur := time.Since(start)
 
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			switch pgErr.Code {
+			case pgerrcode.CheckViolation:
+				err = errs.New(adapter.ErrCheckViolation.Error(), err)
+			case pgerrcode.UniqueViolation:
+				err = errs.New(adapter.ErrUniqueViolation.Error(), err)
+			case pgerrcode.NotNullViolation:
+				err = errs.New(adapter.ErrNotNullViolation.Error(), err)
+			case pgerrcode.ForeignKeyViolation:
+				err = errs.New(adapter.ErrForeignKeyViolation.Error(), err)
+			}
+		}
+
 		tracer.Log(trace.ErrorLevel, "failed to execute", map[string]any{
 			trace.ErrorKey: err,
 		})
@@ -359,6 +378,10 @@ func runQuery(
 	dur := time.Since(start)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			err = errs.New(adapter.ErrNoRows.Error(), err)
+		}
+
 		tracer.Log(trace.ErrorLevel, "failed to execute", map[string]any{
 			trace.ErrorKey: err,
 		})
@@ -397,7 +420,7 @@ func runQueryRow(
 
 // runPrepare always returns no errors.
 func runPrepare(
-	conn stmtConn,
+	conn StmtConn,
 	tracer trace.Logger,
 	ctx context.Context,
 	query string,
