@@ -61,6 +61,12 @@ func (r Row) Err() error {
 func (r Row) Scan(dest ...any) error {
 	err := r.driverRow.Scan(dest...)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			err = errs.New(adapter.ErrNoRows.Error(), err)
+		} else if errors.Is(err, pgx.ErrTooManyRows) {
+			err = errs.New(adapter.ErrTooManyRows.Error(), err)
+		}
+
 		r.tracer.Log(trace.ErrorLevel, "failed to scan a row", map[string]any{
 			trace.ErrorKey: err,
 		})
@@ -103,6 +109,10 @@ func (r Rows) Close() error {
 func (r Rows) Scan(dest ...any) error {
 	err := r.driverRows.Scan(dest...)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			err = errs.New(adapter.ErrNoRows.Error(), err)
+		}
+
 		r.tracer.Log(trace.ErrorLevel, "failed to scan a row", map[string]any{
 			trace.ErrorKey: err,
 		})
@@ -378,10 +388,6 @@ func runQuery(
 	dur := time.Since(start)
 
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			err = errs.New(adapter.ErrNoRows.Error(), err)
-		}
-
 		tracer.Log(trace.ErrorLevel, "failed to execute", map[string]any{
 			trace.ErrorKey: err,
 		})

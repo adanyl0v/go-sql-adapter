@@ -69,44 +69,100 @@ func TestRow_Err(t *testing.T) {
 func TestRow_Scan(t *testing.T) {
 	t.Parallel()
 
-	t.Run("success", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
+	type commandType func(row *Row) error
 
-		mockRow := mock_driver.NewMockRow(ctrl)
-		mockRow.
-			EXPECT().
-			Scan(nil).Return(nil)
+	command := func(row *Row) error {
+		return row.Scan(nil)
+	}
 
-		mockTracer := mock_trace.NewMockLogger(ctrl)
-		mockTracer.
-			EXPECT().
-			Log(trace.TraceLevel, "scanned a row", nil)
+	testCases := map[string]struct {
+		Expect  func(mockRow *mock_driver.MockRow, mockTracer *mock_trace.MockLogger)
+		Command commandType
+		Check   func(err error)
+	}{
+		"success": {
+			Expect: func(
+				mockRow *mock_driver.MockRow,
+				mockTracer *mock_trace.MockLogger,
+			) {
+				mockRow.
+					EXPECT().
+					Scan(nil).Return(nil)
 
-		row := NewRow(mockRow, mockTracer)
+				mockTracer.
+					EXPECT().
+					Log(trace.TraceLevel, "scanned a row", nil)
+			},
+			Command: command,
+			Check: func(err error) {
+				require.NoError(t, err)
+			},
+		},
+		"failure": {
+			Expect: func(mockRow *mock_driver.MockRow, mockTracer *mock_trace.MockLogger) {
+				mockRow.
+					EXPECT().
+					Scan(nil).
+					Return(errors.New(""))
 
-		err := row.Scan(nil)
-		require.NoError(t, err)
-	})
+				mockTracer.
+					EXPECT().
+					Log(trace.ErrorLevel, "failed to scan a row", gomock.Any())
+			},
+			Command: command,
+			Check: func(err error) {
+				require.Error(t, err)
+			},
+		},
+		"no_rows": {
+			Expect: func(mockRow *mock_driver.MockRow, mockTracer *mock_trace.MockLogger) {
+				mockRow.
+					EXPECT().
+					Scan(nil).
+					Return(pgx.ErrNoRows)
 
-	t.Run("failure", func(t *testing.T) {
-		ctrl := gomock.NewController(t)
+				mockTracer.
+					EXPECT().
+					Log(trace.ErrorLevel, "failed to scan a row", gomock.Any())
+			},
+			Command: command,
+			Check: func(err error) {
+				require.EqualError(t, err, adapter.ErrNoRows.Error())
+			},
+		},
+		"too_many_rows": {
+			Expect: func(mockRow *mock_driver.MockRow, mockTracer *mock_trace.MockLogger) {
+				mockRow.
+					EXPECT().
+					Scan(nil).
+					Return(pgx.ErrTooManyRows)
 
-		mockRow := mock_driver.NewMockRow(ctrl)
-		mockRow.
-			EXPECT().
-			Scan(nil).
-			Return(errors.New(""))
+				mockTracer.
+					EXPECT().
+					Log(trace.ErrorLevel, "failed to scan a row", gomock.Any())
+			},
+			Command: command,
+			Check: func(err error) {
+				require.EqualError(t, err, adapter.ErrTooManyRows.Error())
+			},
+		},
+	}
 
-		mockTracer := mock_trace.NewMockLogger(ctrl)
-		mockTracer.
-			EXPECT().
-			Log(trace.ErrorLevel, "failed to scan a row", gomock.Any())
+	for name, testCase := range testCases {
+		t.Run(name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
 
-		row := NewRow(mockRow, mockTracer)
+			mockRow := mock_driver.NewMockRow(ctrl)
+			mockTracer := mock_trace.NewMockLogger(ctrl)
 
-		err := row.Scan(nil)
-		require.Error(t, err)
-	})
+			testCase.Expect(mockRow, mockTracer)
+
+			row := NewRow(mockRow, mockTracer)
+
+			err := testCase.Command(&row)
+			testCase.Check(err)
+		})
+	}
 }
 
 // Rows
@@ -201,6 +257,25 @@ func TestRows_Scan(t *testing.T) {
 
 		err := rows.Scan(nil)
 		require.Error(t, err)
+	})
+
+	t.Run("no_rows", func(t *testing.T) {
+		ctrl := gomock.NewController(t)
+		mockRows := mock_driver.NewMockRows(ctrl)
+		mockRows.
+			EXPECT().
+			Scan(nil).
+			Return(pgx.ErrNoRows)
+
+		mockTracer := mock_trace.NewMockLogger(ctrl)
+		mockTracer.
+			EXPECT().
+			Log(trace.ErrorLevel, "failed to scan a row", gomock.Any())
+
+		rows := NewRows(mockRows, mockTracer)
+
+		err := rows.Scan(nil)
+		require.EqualError(t, err, adapter.ErrNoRows.Error())
 	})
 }
 
@@ -662,26 +737,6 @@ func TestRunQuery(t *testing.T) {
 			Command: command,
 			Check: func(_ adapter.Rows, err error) {
 				require.Error(t, err)
-			},
-		},
-		"no_rows": {
-			Expect: func(
-				ctrl *gomock.Controller,
-				mockQuerier *mock_driver.MockQuerier,
-				mockTracer *mock_trace.MockLogger,
-			) {
-				mockQuerier.
-					EXPECT().
-					Query(gomock.Any(), "").
-					Return(nil, pgx.ErrNoRows)
-
-				mockTracer.
-					EXPECT().
-					Log(trace.ErrorLevel, "failed to execute", gomock.Any())
-			},
-			Command: command,
-			Check: func(_ adapter.Rows, err error) {
-				require.EqualError(t, err, pgx.ErrNoRows.Error())
 			},
 		},
 	}

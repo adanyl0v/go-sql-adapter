@@ -11,6 +11,7 @@ var (
 	ErrUnsupportedRowsAffected = errors.New("unsupported rows affected")
 
 	ErrNoRows              = errors.New("no rows in result set")
+	ErrTooManyRows         = errors.New("too many rows in result set")
 	ErrCheckViolation      = errors.New("violated the check constraint")
 	ErrUniqueViolation     = errors.New("violated the unique constraint")
 	ErrNotNullViolation    = errors.New("violated the not null constraint")
